@@ -58,23 +58,8 @@
                 })
             }
 
-            onchangeName(e) {
-                this.setState({name: e.target.value})
-            }
-            onchangeEmail(e) {
-                this.setState({email: e.target.value})
-            }
-            onchangeTime(e) {
-                this.setState({time: e.target.value})
-            }
-            onchangeColor(e) {
-                this.setState({color: e.target.value})
-            }
-            onchangeBgColor(e) {
-                this.setState({bgcolor: e.target.value})
-            }
-            onchangeSelect(e) {
-                this.setState({selectOption: e.target.value})
+            onChangeInput(e) {
+                this.setState({[e.target.name]: e.target.value})
             }
 
             handleSubmitForm = (event) => {
@@ -123,12 +108,12 @@
                         <h2 className="title">{this.state.title}</h2>
                         <div className="day-name-container">
                             {this.state.dayName.map((e) => 
-                                <DayContainer name={e}/>
+                                <DayContainer name={e} key={e}/>
                             )}
                         </div>
                         <div className="date-container">
-                            {this.state.data.map((data) =>
-                                <DateContainer data={data}/>
+                            {this.state.data.map((data, index) =>
+                                <DateContainer data={data} key={data.id ? data.id : index+'x'}/>
                             )}
                         </div>
                         <div id="modalOne" className="modal">
@@ -139,16 +124,16 @@
                                         <input type="hidden" className="hidden" name="hiddenID" id="hiddenID" value={this.state.id}/>
                                         <input type="hidden" className="hidden" name="eventID" id="eventID" value={this.state.eventId}/>
                                         <h2>Add Event</h2>
-                                        <input type="text" name="name" placeholder="name" value={this.state.name} onChange={(e) => this.onchangeName(e)}/>
-                                        <input type="text" name="email" placeholder="Email" value={this.state.email} onChange={(e) => this.onchangeEmail(e)}/>
-                                        <input type="number" min="1" max="12" name="time" value={this.state.time} placeholder="time" onChange={(e) => this.onchangeTime(e)}/>
-                                        <select value={this.state.selectOption} onChange={(e) =>this.onchangeSelect(e)}><option value="AM">AM</option><option value="PM">PM</option></select>
+                                        <input type="text" name="name" placeholder="name" value={this.state.name} onChange={(e) => this.onChangeInput(e)}/>
+                                        <input type="text" name="email" placeholder="Email" value={this.state.email} onChange={(e) => this.onChangeInput(e)}/>
+                                        <input type="number" min="1" max="12" name="time" value={this.state.time} placeholder="time" onChange={(e) => this.onChangeInput(e)}/>
+                                        <select name="selectOption" value={this.state.selectOption} onChange={(e) =>this.onChangeInput(e)}><option value="AM">AM</option><option value="PM">PM</option></select>
                                         <div>
-                                            <input type="color" id="color" name="color" value={this.state.color} onChange={(e) => this.onchangeColor(e)}/>
+                                            <input type="color" id="color" name="color" value={this.state.color} onChange={(e) => this.onChangeInput(e)}/>
                                             <label>Color</label>
                                         </div>
                                         <div>
-                                            <input type="color" id="bgcolor" name="bgcolor" value={this.state.bgcolor} onChange={(e) => this.onchangeBgColor(e)}/>
+                                            <input type="color" id="bgcolor" name="bgcolor" value={this.state.bgcolor} onChange={(e) => this.onChangeInput(e)}/>
                                             <label>Background Color</label>
                                         </div>
                                         <button type="submit">Submit</button>
@@ -163,12 +148,13 @@
 
         const DayContainer = (prop) => {
             return (
-                <span className="day-name-description" key={prop.name}>{prop.name}</span>
+                <span className="day-name-description">{prop.name}</span>
             )
         }
 
         
         const DateContainer = (prop) => {
+
             function handleDateClick(id) {
                 document.getElementById('modalOne').style.display = "block"
                 document.getElementById('hiddenID').value = id
@@ -176,26 +162,25 @@
                 const element = document.querySelector('#hiddenID')
                 element.dispatchEvent(e)
             }
+
             return (
-                <div className={prop.data && prop.data.id ? 'date-column': ''} key={prop.data.id}>
+                <div className={prop.data && prop.data.id ? 'date-column': ''}>
                     <p className="date-column-title"  onClick={() => handleDateClick(prop.data.id)}>{prop.data.id}</p>
                     {prop.data && prop.data.event && prop.data.event.map((event, index) =>
-                        <EventContainer event={event} id={prop.data.id} eventId={index}/>
+                        <EventContainer event={event} id={prop.data.id} eventId={index} key={index+''+prop.data.id}/>
                     )}
                 </div>
             )
         }
 
         const EventContainer = (prop) => {
+
             function handleEditClick(eventid) {
                 document.getElementById('hiddenID').value = prop.id
                 document.getElementById('eventID').value = eventid
                 const e = new Event("change")
                 const element = document.querySelector('#hiddenID')
                 element.dispatchEvent(e)
-                //const f = new Event("change")
-                // const elementEvent = document.querySelector('#eventID')
-                // elementEvent.dispatchEvent(f)
                 document.getElementById('modalOne').style.display = "block"
             }
 
@@ -210,8 +195,9 @@
                     window.location.reload()
                 }
             }
+
             return (
-                <div style={{backgroundColor: prop.event.bgcolor, color:prop.event.color}} className="date-column-event-container" key={prop.eventId+''+prop.id}>
+                <div style={{backgroundColor: prop.event.bgcolor, color:prop.event.color}} className="date-column-event-container">
                     <span className="date-column-event-icon"><i onClick={() => handleEditClick(prop.eventId)} className="fa fa-pencil-square-o"></i><i onClick={() => handleRemoveClick(prop.eventId)} className="fa fa-trash"></i></span>
                     <p>{prop.event.name}</p>
                     <p>{prop.event.email}</p>
