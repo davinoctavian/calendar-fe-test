@@ -49,12 +49,12 @@
             handleSubmitForm = (event) => {
                 event.preventDefault()
                 if(this.state.name != '' && this.state.email != '' && this.state.time != '') {
-                    const {data, id, name, time, email, color, bgcolor, selectOption} = this.state
+                    const {data, id, eventId, name, time, email, color, bgcolor, selectOption} = this.state
                     const indexData = data.findIndex(x => x.id == id)
                     let dataSingle = data[indexData]
                     if (dataSingle.event) {
                         if(this.state.mode == "edit") {
-                            dataSingle.event[this.state.eventId] = {name: name, time:time+' '+selectOption, email: email, color: color, bgcolor: bgcolor}
+                            dataSingle.event[eventId] = {name: name, time:time+' '+selectOption, email: email, color: color, bgcolor: bgcolor}
                         }
                         else {
                             if(dataSingle.event.length < 3) {
@@ -132,8 +132,6 @@
                                 <div className="contact-form">
                                     <a className="close" onClick={() => this.closeModal()}>&times;</a>
                                     <form onSubmit={this.handleSubmitForm}>
-                                        <input type="hidden" className="hidden" name="hiddenID" id="hiddenID" value={this.state.id}/>
-                                        <input type="hidden" className="hidden" name="eventID" id="eventID" value={this.state.eventId}/>
                                         <h2>Add Event</h2>
                                         <input type="text" name="name" placeholder="name" value={this.state.name} onChange={(e) => this.onChangeInput(e)}/>
                                         <input type="text" name="email" placeholder="Email" value={this.state.email} onChange={(e) => this.onChangeInput(e)}/>
