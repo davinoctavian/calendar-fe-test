@@ -42,22 +42,6 @@
                 
             }
 
-            componentDidMount() {
-                document.querySelector('#hiddenID').addEventListener('change', (e) =>
-                {
-                    this.setState({id: e.target.value})
-                    if (e.target.nextSibling && e.target.nextSibling.value) {
-                        this.setState({eventId: e.target.nextSibling.value})
-                        const allData = JSON.parse(localStorage.getItem('calendarData'))
-                        const findindex = allData.data.findIndex(x => x.id == e.target.value)
-                        const singleData = allData.data[findindex]
-                        const singleDataEvent = singleData.event[e.target.nextSibling.value]
-                        const timeString = singleDataEvent.time.split(' ')
-                        this.setState({mode: 'edit', selectOption: timeString[1], name: singleDataEvent.name, time: timeString[0], bgcolor: singleDataEvent.bgcolor, color: singleDataEvent.color, email: singleDataEvent.email})
-                    }
-                })
-            }
-
             onChangeInput(e) {
                 this.setState({[e.target.name]: e.target.value})
             }
@@ -97,6 +81,33 @@
                 
             }
 
+            handleDateClick = (id) => {
+                document.getElementById('modalOne').style.display = "block"
+                this.setState({id: id})
+            }
+
+            handleEditClick = (eventid, id) => {
+                const {data} = this.state
+                const findindex = data.findIndex(x => x.id == id)
+                const singleData = data[findindex]
+                const singleDataEvent = singleData.event[eventid]
+                const timeString = singleDataEvent.time.split(' ')
+                this.setState({id: id, eventId: eventid, mode: 'edit', selectOption: timeString[1], name: singleDataEvent.name, time: timeString[0], bgcolor: singleDataEvent.bgcolor, color: singleDataEvent.color, email: singleDataEvent.email})
+                document.getElementById('modalOne').style.display = "block"
+            }
+
+            handleRemoveClick = (eventid, id) => {
+                if (confirm("Are you sure want to delete this?") == true) {
+                    const dataFromStorage = JSON.parse(localStorage.getItem('calendarData'))
+                    const findindex = dataFromStorage.data.findIndex(x => x.id == id)
+                    const singleData = dataFromStorage.data[findindex]
+                    singleData.event.splice(eventid, 1)
+                    dataFromStorage.data[findindex] = singleData
+                    localStorage.setItem('calendarData', JSON.stringify(dataFromStorage))
+                    this.setState({data: dataFromStorage.data})
+                }
+            }
+
             closeModal = () => {
                 document.getElementById('modalOne').style.display = "none"
                 this.setState({id: '', eventId: '', mode: 'add', selectOption: 'AM', name: '', time: '', bgcolor: '#000000', color: '#fcfcfc', email: ''})
@@ -113,7 +124,7 @@
                         </div>
                         <div className="date-container">
                             {this.state.data.map((data, index) =>
-                                <DateContainer data={data} key={data.id ? data.id : index+'x'}/>
+                                <DateContainer data={data} handleDateClick={(e) => this.handleDateClick(e)} handleEditClick={(e, f) => this.handleEditClick(e, f)} handleRemoveClick={(e, f) => this.handleRemoveClick(e, f)} key={data.id ? data.id : index+'x'}/>
                             )}
                         </div>
                         <div id="modalOne" className="modal">
@@ -151,54 +162,22 @@
                 <span className="day-name-description">{prop.name}</span>
             )
         }
-
         
         const DateContainer = (prop) => {
-
-            function handleDateClick(id) {
-                document.getElementById('modalOne').style.display = "block"
-                document.getElementById('hiddenID').value = id
-                const e = new Event("change")
-                const element = document.querySelector('#hiddenID')
-                element.dispatchEvent(e)
-            }
-
             return (
                 <div className={prop.data && prop.data.id ? 'date-column': ''}>
-                    <p className="date-column-title"  onClick={() => handleDateClick(prop.data.id)}>{prop.data.id}</p>
+                    <p className="date-column-title"  onClick={() => prop.handleDateClick(prop.data.id)}>{prop.data.id}</p>
                     {prop.data && prop.data.event && prop.data.event.map((event, index) =>
-                        <EventContainer event={event} id={prop.data.id} eventId={index} key={index+''+prop.data.id}/>
+                        <EventContainer event={event} id={prop.data.id} eventId={index} key={index+''+prop.data.id} handleEditClick={prop.handleEditClick} handleRemoveClick={prop.handleRemoveClick}/>
                     )}
                 </div>
             )
         }
 
         const EventContainer = (prop) => {
-
-            function handleEditClick(eventid) {
-                document.getElementById('hiddenID').value = prop.id
-                document.getElementById('eventID').value = eventid
-                const e = new Event("change")
-                const element = document.querySelector('#hiddenID')
-                element.dispatchEvent(e)
-                document.getElementById('modalOne').style.display = "block"
-            }
-
-            function handleRemoveClick(eventid) {
-                if (confirm("Are you sure want to delete this?") == true) {
-                    const dataFromStorage = JSON.parse(localStorage.getItem('calendarData'))
-                    const findindex = dataFromStorage.data.findIndex(x => x.id == prop.id)
-                    const singleData = dataFromStorage.data[findindex]
-                    singleData.event.splice(eventid, 1)
-                    dataFromStorage.data[findindex] = singleData
-                    localStorage.setItem('calendarData', JSON.stringify(dataFromStorage))
-                    window.location.reload()
-                }
-            }
-
             return (
                 <div style={{backgroundColor: prop.event.bgcolor, color:prop.event.color}} className="date-column-event-container">
-                    <span className="date-column-event-icon"><i onClick={() => handleEditClick(prop.eventId)} className="fa fa-pencil-square-o"></i><i onClick={() => handleRemoveClick(prop.eventId)} className="fa fa-trash"></i></span>
+                    <span className="date-column-event-icon"><i onClick={() => prop.handleEditClick(prop.eventId, prop.id)} className="fa fa-pencil-square-o"></i><i onClick={() => prop.handleRemoveClick(prop.eventId, prop.id)} className="fa fa-trash"></i></span>
                     <p>{prop.event.name}</p>
                     <p>{prop.event.email}</p>
                     <p>{prop.event.time}</p>
